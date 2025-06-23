@@ -16,7 +16,7 @@ const Feedbacks = () => {
     total: 0
   });
   const [filters, setFilters] = useState({
-    dateRange: [dayjs().subtract(7, 'days'), dayjs()],
+    dateRange: null,
     feedbackStatuses: [],
     feedbackMethods: [],
     sentiments: [],
@@ -40,24 +40,30 @@ const Feedbacks = () => {
   
       // Request body oluştur
       const requestBody = {
-        startDate: startDate ? startDate.format('YYYY-MM-DD') : null, // Formatı değiştirdik
-        endDate: endDate ? endDate.format('YYYY-MM-DD') : null,
-        feedbackStatuses: filters.feedbackStatuses.length > 0 ? filters.feedbackStatuses : null,
-        feedbackMethods: filters.feedbackMethods.length > 0 ? filters.feedbackMethods : null,
-        sentiments: filters.sentiments.length > 0 ? filters.sentiments : null,
-        types: filters.types.length > 0 ? filters.types : null
+        feedbackSourceId: 1, // or whatever is required for your backend
+        feedbackMethod: "STATIC_QR", // or a value that matches all, if possible
+        feedbackType: "TEXT" // or a value that matches all, if possible
       };
+      
+      // Only add filters if they are set
+      if (filters.dateRange && filters.dateRange.length === 2) {
+        requestBody.startDate = filters.dateRange[0].format('YYYY-MM-DD');
+        requestBody.endDate = filters.dateRange[1].format('YYYY-MM-DD');
+      }
+      if (filters.feedbackStatuses.length > 0) requestBody.feedbackStatuses = filters.feedbackStatuses;
+      if (filters.feedbackMethods.length > 0) requestBody.feedbackMethods = filters.feedbackMethods;
+      if (filters.sentiments.length > 0) requestBody.sentiments = filters.sentiments;
+      if (filters.types.length > 0) requestBody.types = filters.types;
   
       // Boş değerleri temizle
       const cleanedRequestBody = Object.fromEntries(
         Object.entries(requestBody).filter(([_, v]) => v !== null)
       );
   
-      const queryParams = new URLSearchParams({
-        'sort-by': 'feedbackDate',
-        'ascending': 'false',
-        'page-no': pageNo.toString(),
-      });
+     // Add required fields with default values if not present
+cleanedRequestBody.feedbackSourceId = 1; // <-- set your default/source id
+cleanedRequestBody.feedbackMethod = "STATIC_QR"; // <-- set your default method
+cleanedRequestBody.feedbackType = "TEXT"; // <-- set your default type
   
       const response = await fetch(`/vofas/api/v1/feedback?${queryParams.toString()}`, {
         method: 'POST',
@@ -137,7 +143,7 @@ const Feedbacks = () => {
 
   const clearFilters = () => {
     setFilters({
-      dateRange: [dayjs().subtract(7, 'days'), dayjs()],
+      dateRange: null,
       feedbackStatuses: [],
       feedbackMethods: [],
       sentiments: [],
