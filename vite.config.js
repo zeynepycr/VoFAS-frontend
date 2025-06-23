@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/vofas/api': {
-        target: 'http://localhost:8081',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       }
